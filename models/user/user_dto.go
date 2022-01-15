@@ -10,6 +10,7 @@ type User struct {
 	FirstName string `json:"f_name"`
 	Lastname  string `json:"l_name"`
 	Email     string `json:"email"`
+	CreatedAt string `json:"created_at"`
 }
 
 func (user *User) Validate() *errors.RestErr {
