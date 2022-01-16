@@ -10,11 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func CreateUser(c *gin.Context) {
+func Create(c *gin.Context) {
 	var user user.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		// TODO hadle error for Unmarshling the JsonBody
-		restErr := errors.NewBadRequestErr("invalid JSON body")
+		restErr := errors.NewBadRequestErr("invalid json body")
 		c.JSON(restErr.Status, restErr)
 		return
 	}
@@ -27,7 +27,7 @@ func CreateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, *result)
 }
 
-func GetUser(c *gin.Context) {
+func Get(c *gin.Context) {
 	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
 	if err != nil {
 		//fmt.Println(err)
@@ -41,4 +41,43 @@ func GetUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func Update(c *gin.Context) {
+	var user user.User
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil {
+		//fmt.Println(err)
+		userErr := errors.NewBadRequestErr("invalid userID")
+		c.JSON(userErr.Status, userErr)
+		return
+	}
+	if err := c.ShouldBindJSON(&user); err != nil {
+		resterr := errors.NewBadRequestErr("invalid json body")
+		c.JSON(resterr.Status, resterr)
+	}
+	isPartial := c.Request.Method == http.MethodPatch
+	user.Id = userID
+	result, updateErr := services.UpdateUser(isPartial, user)
+	if updateErr != nil {
+		c.JSON(updateErr.Status, updateErr)
+		return
+	}
+	c.JSON(http.StatusOK, result)
+	return
+}
+
+func Delete(c *gin.Context) {
+	userID, err := strconv.ParseInt(c.Param("user_id"), 10, 64)
+	if err != nil {
+		uidErr := errors.NewBadRequestErr("invalid user_id")
+		c.JSON(uidErr.Status, uidErr)
+		return
+	}
+	if err := services.DeleteUser(userID); err != nil {
+		c.JSON(err.Status, err)
+		return
+	}
+	c.JSON(http.StatusOK, map[string]string{"status": "deleted"})
+	return
 }

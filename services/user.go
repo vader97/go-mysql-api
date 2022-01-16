@@ -23,3 +23,39 @@ func GetUser(userID int64) (*user.User, *errors.RestErr) {
 	}
 	return &user, nil
 }
+
+func UpdateUser(partial bool, user user.User) (*user.User, *errors.RestErr) {
+	existUser, err := GetUser(user.Id)
+	if err != nil {
+		return nil, err
+	}
+	if partial {
+		if user.FirstName != "" {
+			existUser.FirstName = user.FirstName
+		}
+		if user.Lastname != "" {
+			existUser.Lastname = user.Lastname
+		}
+		if user.Email != "" {
+			existUser.Email = user.Email
+		}
+
+	} else {
+		existUser.FirstName = user.FirstName
+		existUser.Lastname = user.Lastname
+		existUser.Email = user.Email
+	}
+	if err := existUser.Update(); err != nil {
+		return nil, err
+	}
+	return existUser, nil
+}
+
+func DeleteUser(userId int64) *errors.RestErr {
+	user := user.User{Id: userId}
+	err := user.Delete()
+	if err != nil {
+		return err
+	}
+	return nil
+}
